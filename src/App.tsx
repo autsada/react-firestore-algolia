@@ -132,6 +132,10 @@ function App() {
         </form>
       </div>
 
+      <div className='search'>
+        <input type='text' placeholder='Search' />
+      </div>
+
       <div className='tab-lists'>
         {tabNames.map((name) => (
           <Tab

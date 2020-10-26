@@ -24,7 +24,7 @@
 }
 
 .tab-content {
-  margin: 40px;
+  margin: 20px;
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
   column-gap: 10px;
@@ -43,3 +43,10 @@
   align-items: flex-start;
   width: 50%;
 }
+
+.search {
+  margin-top: 20px;
+  border-top: 1px solid black;
+  padding: 10px;
+}
+
