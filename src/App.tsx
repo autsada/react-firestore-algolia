@@ -1,4 +1,6 @@
 import React, { useState, useEffect, ChangeEvent, FormEvent } from 'react'
+import algoliasearch from 'algoliasearch'
+import { InstantSearch, SearchBox, Hits } from 'react-instantsearch-dom'
 
 import './App.css'
 import Tab from './Tab'
@@ -13,6 +15,11 @@ const tabNames: TabName[] = [
   'Accessories',
   'All',
 ]
+
+const searchClient = algoliasearch(
+  process.env.REACT_APP_ALGOLIA_APP_ID!,
+  process.env.REACT_APP_ALGOLIA_SEARCH_KEY!
+)
 
 function App() {
   const [activeTab, setActiveTab] = useState<TabName>('All')
@@ -132,10 +139,6 @@ function App() {
         </form>
       </div>
 
-      <div className='search'>
-        <input type='text' placeholder='Search' />
-      </div>
-
       <div className='tab-lists'>
         {tabNames.map((name) => (
           <Tab
@@ -147,21 +150,40 @@ function App() {
         ))}
       </div>
 
-      <div className='tab-content'>
-        {!displayedProducts || displayedProducts.length === 0 ? (
-          <h2>No product.</h2>
-        ) : (
-          displayedProducts?.map((prod) => (
-            <div className='content' key={prod.id}>
-              <img key={prod.id} src={prod.image} alt={prod.id} width={200} />
-              <h3>{prod.title}</h3>
-              <p>{prod.description}</p>
-            </div>
-          ))
-        )}
-      </div>
+      <InstantSearch searchClient={searchClient} indexName='products'>
+        <div className='search'>
+          {/* <input type='text' placeholder='Search' /> */}
+          <SearchBox />
+        </div>
+
+        <Hits hitComponent={Hit} />
+
+        {/* <div className='tab-content'>
+          {!displayedProducts || displayedProducts.length === 0 ? (
+            <h2>No product.</h2>
+          ) : (
+            displayedProducts?.map((prod) => (
+              <div className='content' key={prod.id}>
+                <img key={prod.id} src={prod.image} alt={prod.id} width={200} />
+                <h3>{prod.title}</h3>
+                <p>{prod.description}</p>
+              </div>
+            ))
+          )}
+        </div> */}
+      </InstantSearch>
     </div>
   )
 }
 
 export default App
+
+const Hit = ({ hit }: { hit: Product }) => {
+  return (
+    <div className='content' key={hit.id}>
+      <img key={hit.id} src={hit.image} alt={hit.id} width={200} />
+      <h3>{hit.title}</h3>
+      <p>{hit.description}</p>
+    </div>
+  )
+}
