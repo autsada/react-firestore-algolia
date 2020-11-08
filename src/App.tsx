@@ -1,6 +1,6 @@
 import React, { useState, useEffect, ChangeEvent, FormEvent } from 'react'
 import algoliasearch from 'algoliasearch'
-import { InstantSearch, SearchBox, Hits } from 'react-instantsearch-dom'
+// import { InstantSearch, SearchBox, Hits } from 'react-instantsearch-dom'
 
 import './App.css'
 import Tab from './Tab'
@@ -21,6 +21,8 @@ const searchClient = algoliasearch(
   process.env.REACT_APP_ALGOLIA_SEARCH_KEY!
 )
 
+const searchIndex = searchClient.initIndex('products')
+
 function App() {
   const [activeTab, setActiveTab] = useState<TabName>('All')
   const [displayedProducts, setDisplayedProducts] = useState<Product[] | null>()
@@ -31,6 +33,8 @@ function App() {
     category: 'Clothing',
   })
   const [products, setProducts] = useState<Product[] | null>(null)
+  const [searchText, setSearchText] = useState('')
+  const [searchResult, setSearchResult] = useState<any>(null)
 
   const onSelectTab = (tab: TabName) => setActiveTab(tab)
 
@@ -95,6 +99,19 @@ function App() {
       .catch((error) => console.log(error))
   }
 
+  const handleSearchText = (e: ChangeEvent<HTMLInputElement>) =>
+    setSearchText(e.target.value)
+
+  const handleSearch = async (queryText: string) => {
+    const result = await searchIndex.search(queryText)
+
+    setSearchResult(result.hits)
+  }
+
+  useEffect(() => {
+    if (!searchText) setSearchResult(null)
+  }, [searchText])
+
   return (
     <div className='App'>
       <div>
@@ -150,40 +167,56 @@ function App() {
         ))}
       </div>
 
-      <InstantSearch searchClient={searchClient} indexName='products'>
-        <div className='search'>
-          {/* <input type='text' placeholder='Search' /> */}
-          <SearchBox />
-        </div>
+      {/* <InstantSearch searchClient={searchClient} indexName='products'> */}
+      <div className='search'>
+        <input
+          type='text'
+          placeholder='Search'
+          value={searchText}
+          onChange={handleSearchText}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') handleSearch(searchText)
+          }}
+        />
+        {/* <SearchBox /> */}
+      </div>
 
-        <Hits hitComponent={Hit} />
+      {/* <Hits hitComponent={Hit} /> */}
 
-        {/* <div className='tab-content'>
-          {!displayedProducts || displayedProducts.length === 0 ? (
-            <h2>No product.</h2>
-          ) : (
-            displayedProducts?.map((prod) => (
-              <div className='content' key={prod.id}>
-                <img key={prod.id} src={prod.image} alt={prod.id} width={200} />
-                <h3>{prod.title}</h3>
-                <p>{prod.description}</p>
-              </div>
-            ))
-          )}
-        </div> */}
-      </InstantSearch>
+      <div className='tab-content'>
+        {searchResult && searchResult.length > 0 ? (
+          searchResult.map((prod: any) => (
+            <div className='content' key={prod.objectID}>
+              <img src={prod.image} alt={prod.id} width={200} />
+              <h3>{prod.title}</h3>
+              <p>{prod.description}</p>
+            </div>
+          ))
+        ) : !displayedProducts || displayedProducts.length === 0 ? (
+          <h2>No product.</h2>
+        ) : (
+          displayedProducts?.map((prod) => (
+            <div className='content' key={prod.id}>
+              <img src={prod.image} alt={prod.id} width={200} />
+              <h3>{prod.title}</h3>
+              <p>{prod.description}</p>
+            </div>
+          ))
+        )}
+      </div>
+      {/* </InstantSearch> */}
     </div>
   )
 }
 
 export default App
 
-const Hit = ({ hit }: { hit: Product }) => {
-  return (
-    <div className='content' key={hit.id}>
-      <img key={hit.id} src={hit.image} alt={hit.id} width={200} />
-      <h3>{hit.title}</h3>
-      <p>{hit.description}</p>
-    </div>
-  )
-}
+// const Hit = ({ hit }: { hit: Product }) => {
+//   return (
+//     <div className='content' key={hit.id}>
+//       <img key={hit.id} src={hit.image} alt={hit.id} width={200} />
+//       <h3>{hit.title}</h3>
+//       <p>{hit.description}</p>
+//     </div>
+//   )
+// }
